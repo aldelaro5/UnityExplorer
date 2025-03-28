@@ -5,14 +5,9 @@ using UnityExplorer.Inspectors;
 using UniverseLib.UI;
 using UniverseLib.UI.Models;
 using UniverseLib.UI.ObjectPool;
-#if CPP
-#if INTEROP
+#if IL2CPP
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-#else
-using UnhollowerRuntimeLib;
-using UnhollowerBaseLib;
-#endif
 #endif
 
 namespace UnityExplorer.UI.Widgets
@@ -154,7 +149,7 @@ namespace UnityExplorer.UI.Widgets
             UnityEngine.Object.DontDestroyOnLoad(AudioPlayerObject);
             AudioPlayerObject.hideFlags = HideFlags.HideAndDontSave;
             AudioPlayerObject.transform.position = new(int.MinValue, int.MinValue); // move it as far away as possible
-#if CPP
+#if IL2CPP
             Source = AudioPlayerObject.AddComponent(Il2CppType.Of<AudioSource>()).TryCast<AudioSource>();
 #else
             Source = AudioPlayerObject.AddComponent<AudioSource>();
@@ -328,7 +323,7 @@ namespace UnityExplorer.UI.Widgets
 
         static void ConvertAndWrite(FileStream fileStream, AudioClip clip)
         {
-#if CPP
+#if IL2CPP
             Il2CppStructArray<float> samples = new float[clip.samples * clip.channels];
             AudioClip.GetData(clip, samples, clip.samples, 0);
 #else

@@ -10,7 +10,7 @@ namespace UnityExplorer.Runtime
 
         public static void Init()
         {
-#if CPP
+#if IL2CPP
             Instance = new Il2CppHelper();
 #else
             Instance = new MonoHelper();

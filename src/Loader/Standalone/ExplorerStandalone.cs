@@ -95,7 +95,7 @@ namespace UnityExplorer
             if (explorerFolderDest == null)
             {
                 string location =
-#if NET6_0
+#if IL2CPP
                     typeof(ExplorerCore).Assembly.Location;
 #else
                     typeof(ExplorerCore).Assembly.CodeBase;

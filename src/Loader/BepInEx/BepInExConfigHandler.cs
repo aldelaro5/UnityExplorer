@@ -1,4 +1,6 @@
 ﻿#if BIE
+using System;
+using System.Collections.Generic;
 using BepInEx.Configuration;
 using UnityExplorer.Config;
 

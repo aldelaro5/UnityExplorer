@@ -46,16 +46,11 @@ namespace UnityExplorer.CSConsole
             "System.Reflection",
             "UnityEngine",
             "UniverseLib",
-#if CPP
-#if INTEROP
+#if IL2CPP
             "Il2CppInterop.Runtime",
             "Il2CppInterop.Runtime.Attributes",
             "Il2CppInterop.Runtime.Injection",
             "Il2CppInterop.Runtime.InteropTypes.Arrays",
-#else
-            "UnhollowerBaseLib",
-            "UnhollowerRuntimeLib",
-#endif
 #endif
         ];
 

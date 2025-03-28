@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '-noci')"
 
     steps:
@@ -22,92 +22,65 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.x'
-      # Run build script
-      - name: Build UE
-        run: ./build.ps1
+          dotnet-version: '9.x'
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build -c Release --no-restore
 
       #  Upload artifacts
       - name: Upload BepInEx.IL2CPP
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.BepInEx.IL2CPP
-          path: ./Release/UnityExplorer.BepInEx.IL2CPP/
-
-      - name: Upload BepInEx.IL2CPP.CoreCLR
-        uses: actions/upload-artifact@v4
-        with:
-          name: UnityExplorer.BepInEx.IL2CPP.CoreCLR
-          path: ./Release/UnityExplorer.BepInEx.IL2CPP.CoreCLR/
-
-      - name: Upload BepInEx.Unity.IL2CPP.CoreCLR
-        uses: actions/upload-artifact@v4
-        with:
-          name: UnityExplorer.BepInEx.Unity.IL2CPP.CoreCLR
-          path: ./Release/UnityExplorer.BepInEx.Unity.IL2CPP.CoreCLR/
+          path: ./bin/Release/UnityExplorer.BepInEx6.IL2CPP/
+          if-no-files-found: 'error'
 
       - name: Upload BepInEx5.Mono
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.BepInEx5.Mono
-          path: ./Release/UnityExplorer.BepInEx5.Mono/
+          path: ./bin/Release/UnityExplorer.BepInEx5.Mono/
+          if-no-files-found: 'error'
 
       - name: Upload BepInEx6.Mono
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.BepInEx6.Mono
-          path: ./Release/UnityExplorer.BepInEx6.Mono/
-
-      - name: Upload BepInEx6.Unity.Mono
-        uses: actions/upload-artifact@v4
-        with:
-          name: UnityExplorer.BepInEx6.Unity.Mono
-          path: ./Release/UnityExplorer.BepInEx6.Unity.Mono/
+          path: ./bin/Release/UnityExplorer.BepInEx6.Mono/
+          if-no-files-found: 'error'
 
       - name: Upload MelonLoader.IL2CPP
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.MelonLoader.IL2CPP
-          path: ./Release/UnityExplorer.MelonLoader.IL2CPP/
-
-      - name: Upload MelonLoader.IL2CPP.net6preview
-        uses: actions/upload-artifact@v4
-        with:
-          name: UnityExplorer.MelonLoader.IL2CPP.net6preview
-          path: ./Release/UnityExplorer.MelonLoader.IL2CPP.net6preview/
-
-      - name: Upload MelonLoader.IL2CPP.CoreCLR
-        uses: actions/upload-artifact@v4
-        with:
-          name: UnityExplorer.MelonLoader.IL2CPP.CoreCLR
-          path: ./Release/UnityExplorer.MelonLoader.IL2CPP.CoreCLR/
+          path: ./bin/Release/UnityExplorer.MelonLoader.IL2CPP/
+          if-no-files-found: 'error'
 
       - name: Upload MelonLoader.Mono
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.MelonLoader.Mono
-          path: ./Release/UnityExplorer.MelonLoader.Mono/
+          path: ./bin/Release/UnityExplorer.MelonLoader.Mono/
+          if-no-files-found: 'error'
 
       - name: Upload Standalone.IL2CPP
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.Standalone.IL2CPP
-          path: ./Release/UnityExplorer.Standalone.IL2CPP/
-
-      - name: Upload Standalone.IL2CPP.CoreCLR
-        uses: actions/upload-artifact@v4
-        with:
-          name: UnityExplorer.Standalone.IL2CPP.CoreCLR
-          path: ./Release/UnityExplorer.Standalone.IL2CPP.CoreCLR/
+          path: ./bin/Release/UnityExplorer.Standalone.IL2CPP/
+          if-no-files-found: 'error'
 
       - name: Upload Standalone.Mono
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.Standalone.Mono
-          path: ./Release/UnityExplorer.Standalone.Mono/
+          path: ./bin/Release/UnityExplorer.Standalone.Mono/
+          if-no-files-found: 'error'
 
       - name: Upload Editor
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.Editor
           path: ./UnityEditorPackage/
+          if-no-files-found: 'error'

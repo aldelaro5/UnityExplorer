@@ -1,10 +1,6 @@
 ﻿using UnityExplorer.UI;
-#if CPP
-#if UNHOLLOWER
-using UnhollowerRuntimeLib;
-#else
+#if IL2CPP
 using Il2CppInterop.Runtime.Injection;
-#endif
 #endif
 
 namespace UnityExplorer;
@@ -13,13 +9,13 @@ public class ExplorerBehaviour : MonoBehaviour
 {
     internal static ExplorerBehaviour Instance { get; private set; }
 
-#if CPP
+#if IL2CPP
     public ExplorerBehaviour(IntPtr ptr) : base(ptr) { }
 #endif
 
     internal static void Setup()
     {
-#if CPP
+#if IL2CPP
         ClassInjector.RegisterTypeInIl2Cpp<ExplorerBehaviour>();
 #endif
 

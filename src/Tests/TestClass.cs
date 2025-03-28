@@ -1,12 +1,7 @@
 ﻿using System.Collections;
-#if CPP
-#if INTEROP
+#if IL2CPP
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppInterop.Runtime;
-#else
-using UnhollowerRuntimeLib;
-using UnhollowerBaseLib;
-#endif
 #endif
 
 namespace UnityExplorer.Tests
@@ -16,7 +11,7 @@ namespace UnityExplorer.Tests
         static TestClass()
         {
             Init_Mono();
-#if CPP
+#if IL2CPP
             Init_IL2CPP();
 #endif
         }
@@ -164,7 +159,7 @@ namespace UnityExplorer.Tests
 
         #endregion
 
-#if CPP
+#if IL2CPP
         public static Il2CppSystem.Collections.Generic.Dictionary<string, string> IL2CPP_Dict;
         public static Il2CppSystem.Collections.Generic.HashSet<string> IL2CPP_HashSet;
         public static Il2CppSystem.Collections.Generic.List<string> IL2CPP_ListString;

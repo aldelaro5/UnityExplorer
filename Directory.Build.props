@@ -1,0 +1,163 @@
+<Project>
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <Platforms>AnyCPU</Platforms>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <LangVersion>latest</LangVersion>
+        <WarningLevel>8</WarningLevel>
+        <RootNamespace>UnityExplorer</RootNamespace>
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+        <PreserveCompilationContext>false</PreserveCompilationContext>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <OutputPath>$(SolutionDir)\bin\$(Configuration)\$(MSBuildProjectName)\</OutputPath>
+    </PropertyGroup>
+
+    <ItemDefinitionGroup Condition="!$(ProjectName.Contains('Standalone'))">
+        <PackageReference>
+            <PrivateAssets>none</PrivateAssets>
+            <IncludeAssets>compile</IncludeAssets>
+        </PackageReference>
+    </ItemDefinitionGroup>
+    
+    <PropertyGroup Condition="$(Configuration) == 'Debug'">
+        <Optimize>false</Optimize>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>portable</DebugType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(Configuration) == 'Release'">
+        <Optimize>true</Optimize>
+        <DebugSymbols>false</DebugSymbols>
+        <DebugType>none</DebugType>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <Reference Include="mcs">
+            <HintPath>$(SolutionDir)\lib\$(TargetFramework)\mcs.dll</HintPath>
+            <Private>True</Private>
+        </Reference>
+    </ItemGroup>
+
+    <!-- ~~~~~ NUGET ~~~~~ -->
+    <ItemGroup>
+        <PackageReference Include="HarmonyX" Version="2.10.2" />
+        <PackageReference Include="Samboy063.Tomlet" Version="3.1.3">
+            <!-- MelonLoader comes with its own version of Tomlet so no need to ship it for that loader -->
+            <PrivateAssets Condition="!$(ProjectName.Contains('MelonLoader'))">all</PrivateAssets>
+            <IncludeAssets Condition="!$(ProjectName.Contains('MelonLoader'))">all</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.19.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+    
+    <ItemGroup Condition="$(TargetFramework) == 'net35'">
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+            <IncludeAssets>build</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Condition="$(ProjectName.EndsWith('Mono'))">
+        <ProjectReference Condition="$(ProjectName.StartsWith('UnityExplorer'))"
+                          Include="$(SolutionDir)\UniverseLib\src\UniverseLib.Mono.csproj" />
+        <PackageReference Include="UnityEngine.Modules" Version="5.6.7">
+            <PrivateAssets>none</PrivateAssets>
+            <IncludeAssets>compile</IncludeAssets>
+        </PackageReference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>$(SolutionDir)\lib\net35\UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup Condition="$(ProjectName.EndsWith('IL2CPP'))">
+        <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.618" />
+        <PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.618" />
+        <ProjectReference Condition="$(ProjectName.StartsWith('UnityExplorer')) and !$(ProjectName.Contains('MelonLoader'))"
+                          Include="$(SolutionDir)\UniverseLib\src\UniverseLib.IL2CPP.csproj" />
+        <ProjectReference Condition="$(ProjectName.StartsWith('UnityExplorer')) and $(ProjectName.Contains('MelonLoader'))"
+                          Include="$(SolutionDir)\UniverseLib\src\UniverseLib.MelonLoader.IL2CPP.csproj" />
+        <Reference Include="Il2Cppmscorlib">
+            <HintPath>$(SolutionDir)\lib\interop\Il2Cppmscorlib.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2CppSystem.Core">
+            <HintPath>$(SolutionDir)\lib\interop\Il2CppSystem.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.AudioModule">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.AudioModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.CoreModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.PhysicsModule">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.PhysicsModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.TextRenderingModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.UIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+            <HintPath>$(SolutionDir)\lib\interop\UnityEngine.IMGUIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+
+    <Target Name="DeleteDepsJson" AfterTargets="Build">
+        <ItemGroup>
+            <FilesToDelete Include="$(OutputPath)*.deps.json"/>
+        </ItemGroup>
+        <Delete Files="@(FilesToDelete)"/>
+    </Target>
+    
+    <Target Condition="$(ProjectName.Contains('MelonLoader'))"
+            Name="PrepareMelonLoader"
+            AfterTargets="DeleteDepsJson">
+        <ItemGroup>
+            <UserLibsFiles Include="$(OutputPath)UniverseLib*"/>
+        </ItemGroup>
+        <Move SourceFiles="@(UserLibsFiles)" DestinationFolder="$(OutputPath)/UserLibs" />
+        <ItemGroup>
+            <ModsFiles Include="$(OutputPath)*"/>
+        </ItemGroup>
+        <Move SourceFiles="@(ModsFiles)" DestinationFolder="$(OutputPath)/Mods" />
+    </Target>
+
+    <Target Condition="$(ProjectName.Contains('BepInEx'))"
+            Name="PrepareBIE"
+            AfterTargets="DeleteDepsJson">
+        <ItemGroup>
+            <FilesToMove Include="$(OutputPath)*"/>
+        </ItemGroup>
+        <Move SourceFiles="@(FilesToMove)" DestinationFolder="$(OutputPath)/plugins/sinai-dev-UnityExplorer" />
+    </Target>
+
+    <Target Condition="$(ProjectName.Contains('Standalone.Mono')) and $(Configuration) == 'Release'"
+            Name="PrepareEditor"
+            AfterTargets="DeleteDepsJson">
+        <ItemGroup>
+            <FilesToCopy Include="$(OutputPath)*"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(SolutionDir)/UnityEditorPackage/Runtime" />
+    </Target>
+</Project>

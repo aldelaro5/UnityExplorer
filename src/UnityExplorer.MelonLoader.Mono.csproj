@@ -1,0 +1,16 @@
+﻿<Project>
+    <PropertyGroup>
+        <BaseIntermediateOutputPath>$(SolutionDir)\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
+    </PropertyGroup>
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+    <PropertyGroup>
+        <TargetFramework>net35</TargetFramework>
+        <DefineConstants>MONO,ML</DefineConstants>
+    </PropertyGroup>
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+    <ItemGroup>
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.0" />
+    </ItemGroup>
+</Project>

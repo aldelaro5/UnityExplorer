@@ -1,10 +1,7 @@
 ﻿using HarmonyLib;
 using UniverseLib.UI;
 using UniverseLib.UI.Models;
-#if UNHOLLOWER
-using IL2CPPUtils = UnhollowerBaseLib.UnhollowerUtils;
-#endif
-#if INTEROP
+#if IL2CPP
 using IL2CPPUtils = Il2CppInterop.Common.Il2CppInteropUtils;
 #endif
 
@@ -121,7 +118,7 @@ internal class TimeScaleWidget
             {
                 return;
             }
-#if CPP
+#if IL2CPP
             var fieldInfo = IL2CPPUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(target);
             if (fieldInfo == null)
             {
