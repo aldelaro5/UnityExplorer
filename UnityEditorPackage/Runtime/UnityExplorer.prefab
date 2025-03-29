@@ -40,6 +40,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 2342243352467007562}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 255528132, guid: 7e940c577136f52428020c8e128f06f3, type: 3}
+  m_Script: {fileID: 255528132, guid: 8dea5ce831bfb88e8bcdaa08048fb2f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Hide_On_Startup: 1
+  Master_Toggle_Key: 288
+  Main_Navbar_Anchor: 0
+  Log_Unity_Debug: 0
+  Startup_Delay_Time: 1
+  World_MouseInspect_Keybind: 0
+  UI_MouseInspect_Keybind: 0
+  Force_Unlock_Mouse: 1
+  Force_Unlock_Toggle: 0
+  Disable_EventSystem_Override: 0
