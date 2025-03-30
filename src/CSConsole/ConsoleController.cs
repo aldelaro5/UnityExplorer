@@ -557,9 +557,22 @@ namespace UnityExplorer.CSConsole
         public static void InsertSuggestionAtCaret(string suggestion)
         {
             settingCaretCoroutine = true;
-            Input.Text = Input.Text.Insert(LastCaretPosition, suggestion);
+            int startIdx = LastCaretPosition;
+            // get the current composition string (from caret back to last delimiter)
+            while (startIdx > 0)
+            {
+                startIdx--;
+                char c = Input.Text[startIdx];
+                if (Completer.delimiters.Contains(c) || char.IsWhiteSpace(c) || c == '.')
+                {
+                    startIdx++;
+                    break;
+                }
+            }
+            string trimmedInput = Input.Text.Remove(startIdx, LastCaretPosition - startIdx);
+            Input.Text = trimmedInput.Insert(startIdx, suggestion);
 
-            SetCaretPosition(LastCaretPosition + suggestion.Length);
+            SetCaretPosition(startIdx + suggestion.Length);
             LastCaretPosition = Input.Component.caretPosition;
         }
 

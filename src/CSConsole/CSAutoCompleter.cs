@@ -20,7 +20,7 @@ namespace UnityExplorer.CSConsole
             AutoCompleteModal.Instance.ReleaseOwnership(this);
         }
 
-        private readonly HashSet<char> delimiters = new()
+        internal readonly HashSet<char> delimiters = new()
         {
             '{',
             '}',
@@ -84,14 +84,15 @@ namespace UnityExplorer.CSConsole
             if (evaluatorCompletions != null && evaluatorCompletions.Any())
             {
                 suggestions.AddRange(from completion in evaluatorCompletions
-                                     select new Suggestion(GetHighlightString(prefix, completion), completion));
+                    select new Suggestion(GetHighlightString(completion.Substring(0, prefix.Length), completion.Remove(0, prefix.Length)),
+                        completion));
             }
 
             // Get manual namespace completions
 
             foreach (string ns in ReflectionUtility.AllNamespaces)
             {
-                if (ns.StartsWith(input))
+                if (ns.StartsWith(input, StringComparison.OrdinalIgnoreCase))
                 {
                     if (!namespaceHighlights.ContainsKey(ns))
                         namespaceHighlights.Add(ns, $"<color=#CCCCCC>{ns}</color>");
@@ -99,8 +100,7 @@ namespace UnityExplorer.CSConsole
                     int lastDotIndex = input.LastIndexOf('.');
                     if (ns.Length >= lastDotIndex)
                     {
-                        string completion = ns.Substring(lastDotIndex + 1);
-                        suggestions.Add(new Suggestion(namespaceHighlights[ns], completion));
+                        suggestions.Add(new Suggestion(namespaceHighlights[ns], ns));
                     }
                 }
             }
@@ -109,13 +109,12 @@ namespace UnityExplorer.CSConsole
 
             foreach (string kw in KeywordLexer.keywords)
             {
-                if (kw.StartsWith(input))// && kw.Length > input.Length)
+                if (kw.StartsWith(input, StringComparison.OrdinalIgnoreCase))// && kw.Length > input.Length)
                 {
                     if (!keywordHighlights.ContainsKey(kw))
                         keywordHighlights.Add(kw, $"<color=#{SignatureHighlighter.keywordBlueHex}>{kw}</color>");
 
-                    string completion = kw.Substring(input.Length, kw.Length - input.Length);
-                    suggestions.Add(new Suggestion(keywordHighlights[kw], completion));
+                    suggestions.Add(new Suggestion(keywordHighlights[kw], kw));
                 }
             }
 
