@@ -259,6 +259,20 @@ namespace UnityExplorer.CSConsole
                 timeOfLastCtrlR = Time.realtimeSinceStartup;
                 Evaluate(Panel.Input.Text);
             }
+
+            if (EnableSuggestions && !settingCaretCoroutine
+                                  && (InputManager.GetKey(KeyCode.LeftControl)
+                                      || InputManager.GetKey(KeyCode.RightControl))
+                                  && InputManager.GetKeyDown(KeyCode.Space)
+                                  && timeOfLastCtrlR.OccuredEarlierThanDefault())
+            {
+                HighlightVisibleInput(out bool inStringOrComment);
+                if (!inStringOrComment)
+                {
+                    timeOfLastCtrlR = Time.realtimeSinceStartup;
+                    Completer.CheckAutocompletes();
+                }
+            }
         }
 
         static void OnInputScrolled() => HighlightVisibleInput(out _);
