@@ -282,14 +282,20 @@ namespace UnityExplorer.CSConsole
             if (SRENotSupported)
                 return;
 
-            // prevent escape wiping input
+            // If Escape was pressed, the input got cancelled which we need to undo and handle AutoComplete exit
             if (InputManager.GetKeyDown(KeyCode.Escape))
             {
+                // The cancel wipes the text so it needs to be restored
                 Input.Text = previousInput;
 
                 if (EnableSuggestions && AutoCompleteModal.CheckEscape(Completer))
                     OnAutocompleteEscaped();
-
+                
+                // The cancel unfocused the input, we need to undo the cancel and give back focus
+                Input.Component.m_AllowInput = true;
+                Input.Component.m_WasCanceled = false;
+                // A cancel causes the caret to go back to the start, we need to undo that
+                Input.Component.caretPosition = LastCaretPosition;
                 return;
             }
 
