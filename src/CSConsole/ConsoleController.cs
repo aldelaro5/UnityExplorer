@@ -675,7 +675,7 @@ Doorstop example:
         {
             Dropdown drop = Panel.HelpDropdown;
 
-            helpDict.Add("Help", "");
+            helpDict.Add(DEFAULT_HELP_ITEM, "");
             helpDict.Add("Usings", HELP_USINGS);
             helpDict.Add("REPL", HELP_REPL);
             helpDict.Add("Classes", HELP_CLASSES);
@@ -697,6 +697,7 @@ Doorstop example:
             Panel.HelpDropdown.value = 0;
         }
 
+        internal const string DEFAULT_HELP_ITEM = "(Select Help)";
 
         internal const string STARTUP_TEXT = @"<color=#5d8556>// Welcome to the UnityExplorer C# Console!
 

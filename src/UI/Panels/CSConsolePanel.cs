@@ -11,7 +11,7 @@ namespace UnityExplorer.UI.Panels
         public override string Name => "C# Console";
         public override UIManager.Panels PanelType => UIManager.Panels.CSConsole;
 
-        public override int MinWidth => 750;
+        public override int MinWidth => 760;
         public override int MinHeight => 300;
         public override Vector2 DefaultAnchorMin => new(0.4f, 0.175f);
         public override Vector2 DefaultAnchorMax => new(0.85f, 0.925f);
@@ -82,8 +82,8 @@ namespace UnityExplorer.UI.Panels
 
             // Help dropdown
 
-            GameObject helpDrop = UIFactory.CreateDropdown(toolsRow, "HelpDropdown", out Dropdown dropdown, "Help", 14, null);
-            UIFactory.SetLayoutElement(helpDrop, minHeight: 25, minWidth: 100);
+            GameObject helpDrop = UIFactory.CreateDropdown(toolsRow, "HelpDropdown", out Dropdown dropdown, ConsoleController.DEFAULT_HELP_ITEM, 14, null);
+            UIFactory.SetLayoutElement(helpDrop, minHeight: 25, minWidth: 125);
             HelpDropdown = dropdown;
             HelpDropdown.onValueChanged.AddListener((int val) => { this.OnHelpDropdownChanged?.Invoke(val); });
 
