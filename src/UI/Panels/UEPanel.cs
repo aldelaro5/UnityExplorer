@@ -34,6 +34,16 @@ namespace UnityExplorer.UI.Panels
             SaveInternalData();
         }
 
+        public override void EnsureValidPosition()
+        {
+            base.EnsureValidPosition();
+            // Prevent to position the panel higher than the navbar's lowest point
+            Vector3 pos = Rect.position;
+            float upperLimit = UIManager.NavBarRect.position.y - UIManager.NavBarRect.rect.height;
+            if (pos.y > upperLimit)
+                Rect.position = new(pos.x, upperLimit, pos.z);
+        }
+
         public override void SetActive(bool active)
         {
             if (this.Enabled != active)
