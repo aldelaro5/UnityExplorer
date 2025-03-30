@@ -2,3 +2,7 @@
 	path = UniverseLib
 	url = https://github.com/aldelaro5/UniverseLib
 	branch = WIP
+[submodule "mcs-unity"]
+	path = mcs-unity
+	url = https://github.com/aldelaro5/mcs-unity.git
+	branch = WIP
