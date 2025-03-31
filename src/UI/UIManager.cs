@@ -69,6 +69,7 @@ namespace UnityExplorer.UI
         internal static void InitUI()
         {
             UiBase = UniversalUI.RegisterUI<ExplorerUIBase>(ExplorerCore.GUID, Update);
+            UiBase.Panels.OnClickedOutsidePanels += PanelsOnOnClickedOutsidePanels;
 
             UIRootRect = UIRoot.GetComponent<RectTransform>();
             UICanvas = UIRoot.GetComponent<Canvas>();
@@ -109,6 +110,15 @@ namespace UnityExplorer.UI
 
             if (ConfigManager.Hide_On_Startup.Value)
                 ShowMenu = false;
+        }
+
+        // When clicking on the game, input fields don't get unfocused properly
+        // so this forces them to be deactivated
+        private static void PanelsOnOnClickedOutsidePanels()
+        {
+            var inputFields = UniversalUI.CanvasRoot.GetComponentsInChildren<InputField>(false);
+            foreach (InputField inputField in inputFields)
+                inputField.DeactivateInputField();
         }
 
         // Main UI Update loop
