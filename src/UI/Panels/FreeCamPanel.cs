@@ -1,4 +1,5 @@
-﻿using UniverseLib.Input;
+﻿using HarmonyLib;
+using UniverseLib.Input;
 using UniverseLib.UI;
 using UniverseLib.UI.Models;
 #if IL2CPP
@@ -15,8 +16,8 @@ namespace UnityExplorer.UI.Panels
 
         public override string Name => "Freecam";
         public override UIManager.Panels PanelType => UIManager.Panels.Freecam;
-        public override int MinWidth => 400;
-        public override int MinHeight => 320;
+        public override int MinWidth => 410;
+        public override int MinHeight => 310;
         public override Vector2 DefaultAnchorMin => new(0.4f, 0.4f);
         public override Vector2 DefaultAnchorMax => new(0.6f, 0.6f);
         public override bool NavButtonWanted => true;
@@ -42,6 +43,8 @@ namespace UnityExplorer.UI.Panels
 
         static ButtonRef startStopButton;
         static Toggle useGameCameraToggle;
+        static Toggle lockCameraToggle;
+        static Text lockCameraText;
         static InputFieldRef positionInput;
         static InputFieldRef moveSpeedInput;
         static ButtonRef inspectButton;
@@ -181,11 +184,21 @@ namespace UnityExplorer.UI.Panels
 
             AddSpacer(5);
 
-            GameObject toggleObj = UIFactory.CreateToggle(ContentRoot, "UseGameCameraToggle", out useGameCameraToggle, out Text toggleText);
-            UIFactory.SetLayoutElement(toggleObj, minHeight: 25, flexibleWidth: 9999);
+            GameObject toggleRowObj = UIFactory.CreateHorizontalGroup(this.ContentRoot, "ToggleRow", false, false, true, true, 5, default, new(0.07f, 0.07f, 0.07f), TextAnchor.MiddleLeft);
+            UIFactory.SetLayoutElement(toggleRowObj, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
+
+            GameObject toggleLockCameraObj = UIFactory.CreateToggle(toggleRowObj, "LockCamera", out lockCameraToggle, out lockCameraText);
+            UIFactory.SetLayoutElement(toggleLockCameraObj, minHeight: 25, flexibleWidth: 9999);
+            lockCameraToggle.onValueChanged.AddListener(OnLockCameraToggle);
+            lockCameraToggle.isOn = false;
+            lockCameraText.text = "Lock Camera With Game Control";
+            lockCameraText.color = Color.gray;
+
+            GameObject toggleGameCameraObj = UIFactory.CreateToggle(toggleRowObj, "UseGameCameraToggle", out useGameCameraToggle, out Text toggleGameCameraText);
+            UIFactory.SetLayoutElement(toggleGameCameraObj, minHeight: 25, flexibleWidth: 9999);
             useGameCameraToggle.onValueChanged.AddListener(OnUseGameCameraToggled);
             useGameCameraToggle.isOn = false;
-            toggleText.text = "Use Game Camera?";
+            toggleGameCameraText.text = "Use Game Camera?";
 
             AddSpacer(5);
 
@@ -220,6 +233,20 @@ namespace UnityExplorer.UI.Panels
             inspectButton.GameObject.SetActive(false);
 
             AddSpacer(5);
+
+            ExplorerCore.Harmony.PatchAll(typeof(FreeCamBehaviour));
+        }
+
+        protected override void LateConstructUI()
+        {
+            base.LateConstructUI();
+            lockCameraToggle.enabled = false;
+        }
+
+        private void OnLockCameraToggle(bool value)
+        {
+            if (freeCamScript != null)
+                freeCamScript.enabled = !value;
         }
 
         void AddSpacer(int height)
@@ -265,6 +292,13 @@ namespace UnityExplorer.UI.Panels
             {
                 RuntimeHelper.SetColorBlockAuto(startStopButton.Component, new(0.2f, 0.4f, 0.2f));
                 startStopButton.ButtonText.text = "Begin Freecam";
+            }
+
+            if (lockCameraToggle != null)
+            {
+                lockCameraToggle.enabled = inFreeCamMode;
+                lockCameraText.color = lockCameraToggle.enabled ? Color.white : Color.grey;
+                lockCameraToggle.isOn = false;
             }
         }
 
@@ -333,8 +367,12 @@ namespace UnityExplorer.UI.Panels
         public FreeCamBehaviour(IntPtr ptr) : base(ptr) { }
 #endif
 
+        private static bool _shouldEatKeys;
+
         internal void Update()
         {
+            _shouldEatKeys = false;
+
             if (FreeCamPanel.inFreeCamMode)
             {
                 if (!FreeCamPanel.ourCamera)
@@ -383,7 +421,81 @@ namespace UnityExplorer.UI.Panels
                 FreeCamPanel.UpdatePositionInput();
 
                 FreeCamPanel.previousMousePosition = InputManager.MousePosition;
+
+                // We need to not let the game see any inputs other than mouse press so inputs aren't seen while
+                // operating the camera
+                _shouldEatKeys = true;
             }
         }
+
+        private static bool ShouldEatInput()
+        {
+            return _shouldEatKeys && FreeCamPanel.inFreeCamMode && FreeCamPanel.freeCamScript.enabled;
+        }
+
+#if MONO
+#pragma warning disable ULib004
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetKey), [typeof(KeyCode)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetKeyUp), [typeof(KeyCode)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetKeyDown), [typeof(KeyCode)])]
+        public static bool KeyCode_Eat(KeyCode __0, ref bool __result)
+        {
+            if (ShouldEatInput())
+            {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetKey), [typeof(string)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetKeyUp), [typeof(string)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetKeyDown), [typeof(string)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetButton), [typeof(string)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetButtonUp), [typeof(string)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetButtonDown), [typeof(string)])]
+        public static bool String_Eat(string __0, ref bool __result)
+        {
+            if (ShouldEatInput())
+            {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetAxis), [typeof(string)])]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetAxisRaw), [typeof(string)])]
+        public static bool Axis_Eat(string __0, ref float __result)
+        {
+            if (ShouldEatInput())
+            {
+                __result = 0.0f;
+                return false;
+            }
+
+            return true;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Input), nameof(Input.anyKey), MethodType.Getter)]
+        [HarmonyPatch(typeof(Input), nameof(Input.anyKeyDown), MethodType.Getter)]
+        public static bool Getter_bool_Eat(ref bool __result)
+        {
+            if (ShouldEatInput())
+            {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
+#pragma warning restore ULib004
+#endif
     }
 }
