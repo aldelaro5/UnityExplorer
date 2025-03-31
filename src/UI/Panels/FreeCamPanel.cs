@@ -204,8 +204,8 @@ namespace UnityExplorer.UI.Panels
 
             string instructions = @"Controls:
 - WASD / Arrows: Movement
-- Space / PgUp: Move up
-- LeftCtrl / PgDown: Move down
+- E / PgUp: Move up
+- Q / PgDown: Move down
 - Right Mouse Button: Free look
 - Shift: Super speed";
 
@@ -365,10 +365,10 @@ namespace UnityExplorer.UI.Panels
                 if (InputManager.GetKey(KeyCode.DownArrow) || InputManager.GetKey(KeyCode.S))
                     transform.position += transform.forward * -1 * moveSpeed;
 
-                if (InputManager.GetKey(KeyCode.Space) || InputManager.GetKey(KeyCode.PageUp))
+                if (InputManager.GetKey(KeyCode.E) || InputManager.GetKey(KeyCode.PageUp))
                     transform.position += transform.up * moveSpeed;
 
-                if (InputManager.GetKey(KeyCode.LeftControl) || InputManager.GetKey(KeyCode.PageDown))
+                if (InputManager.GetKey(KeyCode.Q) || InputManager.GetKey(KeyCode.PageDown))
                     transform.position += transform.up * -1 * moveSpeed;
 
                 if (InputManager.GetMouseButton(1))
