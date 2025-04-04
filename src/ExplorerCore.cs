@@ -62,17 +62,32 @@ public static class ExplorerCore
     // Do a delayed setup so that objects aren't destroyed instantly.
     // This can happen for a multitude of reasons.
     // Default delay is 1 second which is usually enough.
+#if NET472
+    static async void LateInit()
+#else
     static void LateInit()
+#endif
     {
-        SceneHandler.Init();
+        try
+        {
+            SceneHandler.Init();
 
-        Log($"Creating UI...");
+            Log($"Creating UI...");
 
-        UIManager.InitUI();
+#if NET472
+            await UIManager.InitUI();
+#else
+            UIManager.InitUI();
+#endif
 
-        Log($"{NAME} {VERSION} ({Universe.Context}) initialized.");
+            Log($"{NAME} {VERSION} ({Universe.Context}) initialized.");
 
-        // InspectorManager.Inspect(typeof(Tests.TestClass));
+            // InspectorManager.Inspect(typeof(Tests.TestClass));
+        }
+        catch (Exception e)
+        {
+            LogError(e);
+        }
     }
 
     internal static void Update()

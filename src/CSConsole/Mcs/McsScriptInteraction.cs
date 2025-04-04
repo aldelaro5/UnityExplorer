@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿#if !NET472
+using HarmonyLib;
 using Mono.CSharp;
 using System.Collections;
 using System.Text;
@@ -6,7 +7,7 @@ using UnityExplorer.UI.Panels;
 
 namespace UnityExplorer.CSConsole
 {
-    public class ScriptInteraction : InteractiveBase
+    public class McsScriptInteraction : InteractiveBase
     {
         public static object CurrentTarget
             => InspectorManager.ActiveInspector?.Target;
@@ -64,8 +65,10 @@ namespace UnityExplorer.CSConsole
                 Log(sb.ToString());
             }
             else
+            {
                 ExplorerCore.LogWarning("No classes seem to be defined.");
-
+            }
         }
     }
 }
+#endif

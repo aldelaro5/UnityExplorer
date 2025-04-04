@@ -46,11 +46,26 @@ namespace UnityExplorer.UI.Panels
             OnInputChanged?.Invoke(value);
         }
 
+#if NET472
+        public override async void Update()
+#else
         public override void Update()
+#endif
         {
-            base.Update();
+            try
+            {
+                base.Update();
 
-            ConsoleController.Update();
+#if NET472
+                await ConsoleController.Update();
+#else
+                ConsoleController.Update();
+#endif
+            }
+            catch (Exception e)
+            {
+                ExplorerCore.LogError(e);
+            }
         }
 
         // UI Construction

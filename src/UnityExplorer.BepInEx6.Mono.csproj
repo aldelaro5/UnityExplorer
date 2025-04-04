@@ -5,7 +5,7 @@
     <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
     <PropertyGroup>
-        <TargetFramework>net35</TargetFramework>
+        <TargetFrameworks>net35;net472</TargetFrameworks>
         <DefineConstants>MONO,BIE,BIE6</DefineConstants>
     </PropertyGroup>
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

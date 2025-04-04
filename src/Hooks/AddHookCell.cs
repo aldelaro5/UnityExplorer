@@ -18,9 +18,24 @@ namespace UnityExplorer.Hooks
 
         public int CurrentDisplayedIndex;
 
+#if NET472
+        private async void OnHookClicked()
+#else
         private void OnHookClicked()
+#endif
         {
-            HookCreator.AddHookClicked(CurrentDisplayedIndex);
+            try
+            {
+#if NET472
+                await HookCreator.AddHookClicked(CurrentDisplayedIndex);
+#else
+                HookCreator.AddHookClicked(CurrentDisplayedIndex);
+#endif
+            }
+            catch (Exception e)
+            {
+                ExplorerCore.LogError(e);
+            }
         }
 
         public void Enable()

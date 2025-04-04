@@ -6,6 +6,9 @@ using UnityExplorer.UI.Widgets;
 using UniverseLib.Input;
 using UniverseLib.UI;
 using UniverseLib.UI.Models;
+#if NET472
+using System.Threading.Tasks;
+#endif
 
 namespace UnityExplorer.UI
 {
@@ -66,7 +69,11 @@ namespace UnityExplorer.UI
 
         // Initialization
 
+#if NET472
+        internal static async Task InitUI()
+#else
         internal static void InitUI()
+#endif
         {
             UiBase = UniversalUI.RegisterUI<ExplorerUIBase>(ExplorerCore.GUID, Update);
             UiBase.Panels.OnClickedOutsidePanels += PanelsOnOnClickedOutsidePanels;
@@ -100,8 +107,11 @@ namespace UnityExplorer.UI
 
             // Call some initialize methods
             Notification.Init(UIRoot);
+#if NET472
+            await ConsoleController.Init();
+#else
             ConsoleController.Init();
-
+#endif
             // Failsafe fix, in some games all dropdowns displayed values are blank on startup for some reason.
             foreach (Dropdown dropdown in UIRoot.GetComponentsInChildren<Dropdown>(true))
                 dropdown.RefreshShownValue();

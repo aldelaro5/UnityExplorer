@@ -1,8 +1,13 @@
 ﻿using System.Text;
-using UnityExplorer.CSConsole.Lexers;
 using UnityExplorer.UI.Panels;
 using UnityExplorer.UI.Widgets.AutoComplete;
 using UniverseLib.UI.Models;
+#if NET472
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Tags;
+#else
+using UnityExplorer.CSConsole.Lexers;
+#endif
 
 namespace UnityExplorer.CSConsole
 {
@@ -40,7 +45,11 @@ namespace UnityExplorer.CSConsole
 
         private readonly List<Suggestion> suggestions = new();
 
+#if NET472
+        public async Task CheckAutocompletes(char? insertedChar)
+#else
         public void CheckAutocompletes()
+#endif
         {
             if (string.IsNullOrEmpty(InputField.Text))
             {
@@ -49,7 +58,27 @@ namespace UnityExplorer.CSConsole
             }
 
             suggestions.Clear();
+#if NET472
+            var completions = await ConsoleController.Evaluator.GetCompletions(
+                ConsoleController.Input.Text,
+                ConsoleController.Input.Component.caretPosition,
+                insertedChar);
 
+            foreach (var completion in completions.items)
+            {
+                string customColor = string.Empty;
+                if (completion.Tags.Contains(WellKnownTags.Namespace))
+                    customColor = "CCCCCC";
+                else if (completion.Tags.Contains(WellKnownTags.Keyword))
+                    customColor = SignatureHighlighter.keywordBlueHex;
+
+                string highlightedText = customColor == string.Empty
+                    ? GetHighlightString(completion.DisplayText.Substring(0, completions.prefix.Length),
+                        completion.DisplayText.Remove(0, completions.prefix.Length))
+                    : $"<color=#{customColor}>{completion}</color>";
+                suggestions.Add(new Suggestion(highlightedText, completion.DisplayText));
+            }
+#else
             int caret = Math.Max(0, Math.Min(InputField.Text.Length - 1, InputField.Component.caretPosition - 1));
             int startIdx = caret;
 
@@ -117,7 +146,7 @@ namespace UnityExplorer.CSConsole
                     suggestions.Add(new Suggestion(keywordHighlights[kw], kw));
                 }
             }
-
+#endif
             if (suggestions.Any())
             {
                 AutoCompleteModal.TakeOwnership(this);

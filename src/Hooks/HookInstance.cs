@@ -1,24 +1,41 @@
 ﻿using HarmonyLib;
-using Mono.CSharp;
 using System.Text;
 using UnityExplorer.CSConsole;
+#if NET472
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Scripting;
+#else
+using Mono.CSharp;
+#endif
 
 namespace UnityExplorer.Hooks
 {
     public class HookInstance
     {
         // Static 
-
+#if !NET472
         static readonly StringBuilder evaluatorOutput;
-        static readonly ScriptEvaluator scriptEvaluator = new(new StringWriter(evaluatorOutput = new StringBuilder()));
+        static readonly McsScriptEvaluator scriptEvaluator = new(new StringWriter(evaluatorOutput = new StringBuilder()));
+#else
+        static readonly RoslynScriptEvaluator scriptEvaluator = new();
+#endif
 
         static HookInstance()
         {
+#if NET472
+            scriptEvaluator.AddUsingDirective("System");
+            scriptEvaluator.AddUsingDirective("System.Text");
+            scriptEvaluator.AddUsingDirective("System.Reflection");
+            scriptEvaluator.AddUsingDirective("System.Collections");
+            scriptEvaluator.AddUsingDirective("System.Collections.Generic");
+#else
             scriptEvaluator.Run("using System;");
             scriptEvaluator.Run("using System.Text;");
             scriptEvaluator.Run("using System.Reflection;");
             scriptEvaluator.Run("using System.Collections;");
             scriptEvaluator.Run("using System.Collections.Generic;");
+#endif
         }
 
         // Instance
@@ -28,7 +45,7 @@ namespace UnityExplorer.Hooks
         public MethodInfo TargetMethod;
         public string PatchSourceCode;
 
-        readonly string signature;
+        string signature;
         PatchProcessor patchProcessor;
 
         MethodInfo postfix;
@@ -36,23 +53,41 @@ namespace UnityExplorer.Hooks
         MethodInfo finalizer;
         MethodInfo transpiler;
 
-        public HookInstance(MethodInfo targetMethod)
+        private HookInstance() { }
+
+#if NET472
+        public static async Task<HookInstance> CreateInstance(MethodInfo targetMethod)
+#else
+        public static HookInstance CreateInstance(MethodInfo targetMethod)
+#endif
         {
-            this.TargetMethod = targetMethod;
-            this.signature = TargetMethod.FullDescription();
+            HookInstance instance = new();
+            instance.TargetMethod = targetMethod;
+            instance.signature = instance.TargetMethod.FullDescription();
 
-            GenerateDefaultPatchSourceCode(targetMethod);
+            instance.GenerateDefaultPatchSourceCode(targetMethod);
 
-            if (CompileAndGenerateProcessor(PatchSourceCode))
-                Patch();
+#if NET472
+            if (await instance.CompileAndGenerateProcessor(instance.PatchSourceCode))
+#else
+            if (instance.CompileAndGenerateProcessor(instance.PatchSourceCode))
+#endif
+                instance.Patch();
+            return instance;
         }
 
+#if !NET472
         // Evaluator.source_file 
         private static readonly FieldInfo fi_sourceFile = AccessTools.Field(typeof(Evaluator), "source_file");
         // TypeDefinition.Definition
         private static readonly PropertyInfo pi_Definition = AccessTools.Property(typeof(TypeDefinition), "Definition");
+#endif
 
+#if NET472
+        public async Task<bool> CompileAndGenerateProcessor(string patchSource)
+#else
         public bool CompileAndGenerateProcessor(string patchSource)
+#endif
         {
             Unpatch();
 
@@ -64,14 +99,32 @@ namespace UnityExplorer.Hooks
 
                 // Dynamically compile the patch method
 
-                codeBuilder.AppendLine($"static class DynamicPatch_{DateTime.Now.Ticks}");
+                string patchClassName = $"DynamicPatch_{DateTime.Now.Ticks}";
+                codeBuilder.AppendLine($"static class {patchClassName}");
                 codeBuilder.AppendLine("{");
                 codeBuilder.AppendLine(patchSource);
                 codeBuilder.AppendLine("}");
 
+#if NET472
+                var state = await scriptEvaluator.Compile(codeBuilder.ToString());
+                if (state.Exception is not null)
+                {
+                    ExplorerCore.LogWarning($"An exception was thrown when executing the code: " +
+                                            $"{RoslynScriptEvaluator.FormatScriptException(state.Exception)}");
+                    return false;
+                }
+
+                // Get the most recent Patch type in the source file
+                var scriptExecutionStateGetter = AccessTools.PropertyGetter(typeof(ScriptState), "ExecutionState");
+                object executionState = scriptExecutionStateGetter.Invoke(state, null);
+                object[] submissionStates = (object[])AccessTools.Field(executionState
+                    .GetType(), "_submissionStates").GetValue(executionState);
+                var scriptClass = submissionStates.Skip(1).Last(x => x is not null).GetType();
+                var patchClass = scriptClass.GetNestedType(patchClassName);
+#else
                 scriptEvaluator.Run(codeBuilder.ToString());
 
-                if (ScriptEvaluator._reportPrinter.ErrorsCount > 0)
+                if (McsScriptEvaluator._reportPrinter.ErrorsCount > 0)
                     throw new FormatException($"Unable to compile the generated patch!");
 
                 // TODO: Publicize MCS to avoid this reflection
@@ -81,7 +134,7 @@ namespace UnityExplorer.Hooks
                     .Last(it => it.MemberName.Name.StartsWith("DynamicPatch_"));
                 // Get the TypeSpec from the TypeDefinition, then get its "MetaInfo" (System.Type)
                 Type patchClass = ((TypeSpec)pi_Definition.GetValue((Class)typeContainer, null)).GetMetaInfo();
-
+#endif
                 // Create the harmony patches as defined
 
                 postfix = patchClass.GetMethod("Postfix", ReflectionUtility.FLAGS);
@@ -102,26 +155,32 @@ namespace UnityExplorer.Hooks
 
                 return true;
             }
-            catch (Exception ex)
+#if NET472
+            catch (CompilationErrorException ex)
             {
-                if (ex is FormatException)
-                {
-                    string output = scriptEvaluator._textWriter.ToString();
-                    string[] outputSplit = output.Split('\n');
-                    if (outputSplit.Length >= 2)
-                        output = outputSplit[outputSplit.Length - 2];
-                    evaluatorOutput.Clear();
+                var errors = ex.Diagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.ToString());
+                ExplorerCore.LogWarning($"Unable to compile the code:\n{string.Join("\n", errors)}");
+                return false;
+            }
+#else
+            catch (FormatException ex)
+            {
+                string output = scriptEvaluator._textWriter.ToString();
+                string[] outputSplit = output.Split('\n');
+                if (outputSplit.Length >= 2)
+                    output = outputSplit[outputSplit.Length - 2];
+                evaluatorOutput.Clear();
 
-                    if (ScriptEvaluator._reportPrinter.ErrorsCount > 0)
-                        ExplorerCore.LogWarning($"Unable to compile the code. Evaluator's last output was:\r\n{output}");
-                    else
-                        ExplorerCore.LogWarning($"Exception generating patch source code: {ex}");
-                }
+                if (McsScriptEvaluator._reportPrinter.ErrorsCount > 0)
+                    ExplorerCore.LogWarning($"Unable to compile the code. Evaluator's last output was:\r\n{output}");
                 else
                     ExplorerCore.LogWarning($"Exception generating patch source code: {ex}");
-
-                // ExplorerCore.Log(codeBuilder.ToString());
-
+                return false;
+            }
+#endif
+            catch (Exception ex)
+            {
+                ExplorerCore.LogWarning($"Exception generating patch source code: {ex}");
                 return false;
             }
         }

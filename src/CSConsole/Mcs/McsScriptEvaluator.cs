@@ -1,11 +1,12 @@
-﻿using Mono.CSharp;
+﻿#if !NET472
+using Mono.CSharp;
 using UnityExplorer.Config;
 
 // Thanks to ManlyMarco for this
 
 namespace UnityExplorer.CSConsole
 {
-    public class ScriptEvaluator : Evaluator, IDisposable
+    public class McsScriptEvaluator : Evaluator, IDisposable
     {
         internal TextWriter _textWriter;
         internal static StreamReportPrinter _reportPrinter;
@@ -18,7 +19,7 @@ namespace UnityExplorer.CSConsole
             "System.Xml"
         };
 
-        public ScriptEvaluator(TextWriter tw) : base(BuildContext(tw))
+        public McsScriptEvaluator(TextWriter tw) : base(BuildContext(tw))
         {
             _textWriter = tw;
 
@@ -98,3 +99,4 @@ namespace UnityExplorer.CSConsole
         }
     }
 }
+#endif

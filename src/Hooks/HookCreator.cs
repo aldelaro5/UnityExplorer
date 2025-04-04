@@ -7,6 +7,9 @@ using UniverseLib.UI;
 using UniverseLib.UI.Models;
 using UniverseLib.UI.Widgets;
 using UniverseLib.UI.Widgets.ScrollView;
+#if NET472
+using System.Threading.Tasks;
+#endif
 
 namespace UnityExplorer.Hooks
 {
@@ -104,7 +107,11 @@ namespace UnityExplorer.Hooks
             AddHooksScrollPool.UIRoot.SetActive(true);
         }
 
+#if NET472
+        public static async Task AddHookClicked(int index)
+#else
         public static void AddHookClicked(int index)
+#endif
         {
             if (index >= filteredEligibleMethods.Count)
                 return;
@@ -123,13 +130,32 @@ namespace UnityExplorer.Hooks
                 return;
             }
 
+#if NET472
+            await AddHook(filteredEligibleMethods[index]);
+#else
             AddHook(filteredEligibleMethods[index]);
+#endif
         }
 
+#if NET472
+        static async void OnGenericMethodChosen(Type[] arguments)
+#else
         static void OnGenericMethodChosen(Type[] arguments)
+#endif
         {
-            MethodInfo generic = pendingGenericMethod.MakeGenericMethod(arguments);
-            AddHook(generic);
+            try
+            {
+                MethodInfo generic = pendingGenericMethod.MakeGenericMethod(arguments);
+#if NET472
+                await AddHook(generic);
+#else
+                AddHook(generic);
+#endif
+            }
+            catch (Exception e)
+            {
+                ExplorerCore.LogError(e);
+            }
         }
 
         static void OnGenericMethodCancel()
@@ -138,7 +164,11 @@ namespace UnityExplorer.Hooks
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
         }
 
+#if NET472
+        public static async Task AddHook(MethodInfo method)
+#else
         public static void AddHook(MethodInfo method)
+#endif
         {
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
 
@@ -149,7 +179,11 @@ namespace UnityExplorer.Hooks
                 return;
             }
 
-            HookInstance hook = new(method);
+#if NET472
+            HookInstance hook = await HookInstance.CreateInstance(method);
+#else
+            HookInstance hook = HookInstance.CreateInstance(method);
+#endif
             HookList.hookedSignatures.Add(sig);
             HookList.currentHooks.Add(sig, hook);
 
@@ -215,21 +249,37 @@ namespace UnityExplorer.Hooks
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
         }
 
+#if NET472
+        internal static async void EditorInputSave()
+#else
         internal static void EditorInputSave()
+#endif
         {
-            string input = EditorInput.Text;
-            bool wasEnabled = CurrentEditedHook.Enabled;
-            if (CurrentEditedHook.CompileAndGenerateProcessor(input))
+            try
             {
-                if (wasEnabled)
-                    CurrentEditedHook.Patch();
+                string input = EditorInput.Text;
+                bool wasEnabled = CurrentEditedHook.Enabled;
+#if NET472
+                bool compiled = await CurrentEditedHook.CompileAndGenerateProcessor(input);
+#else
+                bool compiled = CurrentEditedHook.CompileAndGenerateProcessor(input);
+#endif
+                if (compiled)
+                {
+                    if (wasEnabled)
+                        CurrentEditedHook.Patch();
 
-                CurrentEditedHook.PatchSourceCode = input;
-                CurrentEditedHook = null;
-                HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
+                    CurrentEditedHook.PatchSourceCode = input;
+                    CurrentEditedHook = null;
+                    HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
+                }
+
+                HookList.HooksScrollPool.Refresh(true, false);
             }
-
-            HookList.HooksScrollPool.Refresh(true, false);
+            catch (Exception e)
+            {
+                ExplorerCore.LogError(e);
+            }
         }
 
         // UI Construction

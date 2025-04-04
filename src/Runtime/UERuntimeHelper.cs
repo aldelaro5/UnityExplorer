@@ -60,7 +60,9 @@ namespace UnityExplorer.Runtime
                         currentBlacklist.Add(sig);
                 }
 
+#if !NET472
                 Mono.CSharp.IL2CPP.Blacklist.SignatureBlacklist = currentBlacklist;
+#endif
             }
             catch (Exception ex)
             {

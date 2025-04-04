@@ -1,16 +1,26 @@
-﻿using Mono.CSharp;
-using System.Collections;
+﻿using System.Collections;
 using System.Text;
 using UnityExplorer.UI;
 using UnityExplorer.UI.Panels;
 using UniverseLib.Input;
 using UniverseLib.UI.Models;
+#if NET472
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Scripting;
+#else
+using Mono.CSharp;
+#endif
 
 namespace UnityExplorer.CSConsole
 {
     public static class ConsoleController
     {
-        public static ScriptEvaluator Evaluator { get; private set; }
+#if NET472
+        public static RoslynScriptEvaluator Evaluator { get; private set; }
+#else
+        public static McsScriptEvaluator Evaluator { get; private set; }
+#endif
         public static LexerBuilder Lexer { get; private set; }
         public static CSAutoCompleter Completer { get; private set; }
 
@@ -27,17 +37,20 @@ namespace UnityExplorer.CSConsole
 
         public static string ScriptsFolder => Path.Combine(ExplorerCore.ExplorerFolder, "Scripts");
 
+#if !NET472
         static HashSet<string> usingDirectives;
         static StringBuilder evaluatorOutput;
         static StringWriter evaluatorStringWriter;
+#endif
+
         static float timeOfLastCtrlR;
 
         static bool settingCaretCoroutine;
         static string previousInput;
         static int previousContentLength = 0;
 
-        static readonly string[] DefaultUsing = [
-
+        static readonly string[] DefaultUsing =
+        [
             "System",
             "System.Linq",
             "System.Text",
@@ -56,19 +69,41 @@ namespace UnityExplorer.CSConsole
 
         const int CSCONSOLE_LINEHEIGHT = 18;
 
+#if NET472
+        public static async Task Init()
+#else
         public static void Init()
+#endif
         {
             try
             {
                 ResetConsole(false);
                 // ensure the compiler is supported (if this fails then SRE is probably stripped)
+#if NET472
+                var state = await Evaluator.Compile("0 == 0");
+                if (state.Exception is not null)
+                    throw state.Exception;
+#else
                 Evaluator.Compile("0 == 0");
+#endif
             }
             catch (Exception ex)
             {
                 DisableConsole(ex);
                 return;
             }
+
+#if NET472
+            try
+            {
+                // Prepare the autocomplete so it gets faster after
+                await Evaluator.GetCompletions("", 0, null);
+            }
+            catch (Exception ex)
+            {
+                ExplorerCore.LogError(ex.ToString());
+            }
+#endif
 
             // Setup console
             Lexer = new LexerBuilder();
@@ -98,7 +133,11 @@ namespace UnityExplorer.CSConsole
                     ExplorerCore.Log($"Executing startup script from '{startupPath}'...");
                     string text = File.ReadAllText(startupPath);
                     Input.Text = text;
+#if NET472
+                    await Evaluate(Input.Text);
+#else
                     Evaluate();
+#endif
                 }
             }
             catch (Exception ex)
@@ -107,18 +146,19 @@ namespace UnityExplorer.CSConsole
             }
         }
 
-
         #region Evaluating
 
+#if !NET472
         static void GenerateTextWriter()
         {
             evaluatorOutput = new StringBuilder();
             evaluatorStringWriter = new StringWriter(evaluatorOutput);
         }
+#endif
 
         public static void ResetConsole() => ResetConsole(true);
 
-        public static void ResetConsole(bool logSuccess = true)
+        public static void ResetConsole(bool logSuccess)
         {
             if (SRENotSupported)
                 return;
@@ -126,13 +166,17 @@ namespace UnityExplorer.CSConsole
             if (Evaluator != null)
                 Evaluator.Dispose();
 
+#if NET472
+            Evaluator = new();
+#else
             GenerateTextWriter();
-            Evaluator = new ScriptEvaluator(evaluatorStringWriter)
+            Evaluator = new McsScriptEvaluator(evaluatorStringWriter)
             {
-                InteractiveBaseClass = typeof(ScriptInteraction)
+                InteractiveBaseClass = typeof(McsScriptInteraction)
             };
-
             usingDirectives = new HashSet<string>();
+#endif
+
             foreach (string use in DefaultUsing)
                 AddUsing(use);
 
@@ -142,26 +186,75 @@ namespace UnityExplorer.CSConsole
 
         public static void AddUsing(string assemblyName)
         {
+#if NET472
+            Evaluator.AddUsingDirective(assemblyName);
+#else
             if (!usingDirectives.Contains(assemblyName))
             {
                 Evaluate($"using {assemblyName};", true);
                 usingDirectives.Add(assemblyName);
             }
+#endif
         }
 
+#if NET472
+        public static async void Evaluate()
+#else
         public static void Evaluate()
+#endif
         {
-            if (SRENotSupported)
-                return;
+            try
+            {
+                if (SRENotSupported)
+                    return;
 
-            Evaluate(Input.Text);
+#if NET472
+                await Evaluate(Input.Text);
+#else
+                Evaluate(Input.Text);
+#endif
+            }
+            catch (Exception e)
+            {
+                ExplorerCore.LogError(e);
+            }
         }
 
+#if NET472
+        public static async Task Evaluate(string input, bool supressLog = false)
+#else
         public static void Evaluate(string input, bool supressLog = false)
+#endif
         {
             if (SRENotSupported)
                 return;
 
+#if NET472
+            try
+            {
+                var repl = await Evaluator.Compile(input);
+                if (repl.Exception is not null)
+                {
+                    if (!supressLog)
+                    {
+                        ExplorerCore.LogWarning($"An exception was thrown when executing the code: " +
+                                                $"{RoslynScriptEvaluator.FormatScriptException(repl.Exception)}");
+                    }
+                    return;
+                }
+                ExplorerCore.Log(repl.ReturnValue is not null
+                    ? $"Invoked REPL, result: {repl.ReturnValue}"
+                    : "Invoked REPL (no return value)");
+            }
+            catch (CompilationErrorException ex)
+            {
+                if (!supressLog)
+                {
+                    var errors = ex.Diagnostics.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.ToString());
+                    ExplorerCore.LogWarning($"Unable to compile the code:\n{string.Join("\n", errors)}");
+                }
+            }
+#else
             if (evaluatorStringWriter == null || evaluatorOutput == null)
             {
                 GenerateTextWriter();
@@ -201,7 +294,7 @@ namespace UnityExplorer.CSConsole
                         output = outputSplit[outputSplit.Length - 2];
                     evaluatorOutput.Clear();
 
-                    if (ScriptEvaluator._reportPrinter.ErrorsCount > 0)
+                    if (McsScriptEvaluator._reportPrinter.ErrorsCount > 0)
                         throw new FormatException($"Unable to compile the code. Evaluator's last output was:\r\n{output}");
                     else if (!supressLog)
                         ExplorerCore.Log($"Code compiled without errors.");
@@ -212,6 +305,7 @@ namespace UnityExplorer.CSConsole
                 if (!supressLog)
                     ExplorerCore.LogWarning(fex.Message);
             }
+#endif
             catch (Exception ex)
             {
                 if (!supressLog)
@@ -224,7 +318,11 @@ namespace UnityExplorer.CSConsole
 
         #region Update loop and event listeners
 
+#if NET472
+        public static async Task Update()
+#else
         public static void Update()
+#endif
         {
             if (SRENotSupported)
                 return;
@@ -257,7 +355,11 @@ namespace UnityExplorer.CSConsole
                 && timeOfLastCtrlR.OccuredEarlierThanDefault())
             {
                 timeOfLastCtrlR = Time.realtimeSinceStartup;
+#if NET472
+                await Evaluate(Panel.Input.Text);
+#else
                 Evaluate(Panel.Input.Text);
+#endif
             }
 
             if (EnableSuggestions && !settingCaretCoroutine
@@ -270,60 +372,81 @@ namespace UnityExplorer.CSConsole
                 if (!inStringOrComment)
                 {
                     timeOfLastCtrlR = Time.realtimeSinceStartup;
+#if NET472
+                    await Completer.CheckAutocompletes(null);
+#else
                     Completer.CheckAutocompletes();
+#endif
                 }
             }
         }
 
         static void OnInputScrolled() => HighlightVisibleInput(out _);
 
+#if NET472
+        static async void OnInputChanged(string value)
+#else
         static void OnInputChanged(string value)
+#endif
         {
-            if (SRENotSupported)
-                return;
-
-            // If Escape was pressed, the input got cancelled which we need to undo and handle AutoComplete exit
-            if (InputManager.GetKeyDown(KeyCode.Escape))
+            try
             {
-                // The cancel wipes the text so it needs to be restored
-                Input.Text = previousInput;
+                if (SRENotSupported)
+                    return;
 
-                if (EnableSuggestions && AutoCompleteModal.CheckEscape(Completer))
-                    OnAutocompleteEscaped();
+                // If Escape was pressed, the input got cancelled which we need to undo and handle AutoComplete exit
+                if (InputManager.GetKeyDown(KeyCode.Escape))
+                {
+                    // The cancel wipes the text so it needs to be restored
+                    Input.Text = previousInput;
+
+                    if (EnableSuggestions && AutoCompleteModal.CheckEscape(Completer))
+                        OnAutocompleteEscaped();
                 
-                // The cancel unfocused the input, we need to undo the cancel and give back focus
-                Input.Component.m_AllowInput = true;
-                Input.Component.m_WasCanceled = false;
-                // A cancel causes the caret to go back to the start, we need to undo that
-                Input.Component.caretPosition = LastCaretPosition;
-                return;
-            }
+                    // The cancel unfocused the input, we need to undo the cancel and give back focus
+                    Input.Component.m_AllowInput = true;
+                    Input.Component.m_WasCanceled = false;
+                    // A cancel causes the caret to go back to the start, we need to undo that
+                    Input.Component.caretPosition = LastCaretPosition;
+                    return;
+                }
 
-            previousInput = value;
+                previousInput = value;
 
-            if (EnableSuggestions && AutoCompleteModal.CheckEnter(Completer))
-                OnAutocompleteEnter();
+                if (EnableSuggestions && AutoCompleteModal.CheckEnter(Completer))
+                    OnAutocompleteEnter();
 
-            if (!settingCaretCoroutine)
-            {
-                if (EnableAutoIndent)
-                    DoAutoIndent();
-            }
+                if (!settingCaretCoroutine)
+                {
+                    if (EnableAutoIndent)
+                        DoAutoIndent();
+                }
 
-            HighlightVisibleInput(out bool inStringOrComment);
+                HighlightVisibleInput(out bool inStringOrComment);
 
-            if (!settingCaretCoroutine)
-            {
-                if (EnableSuggestions)
+                if (!settingCaretCoroutine && EnableSuggestions)
                 {
                     if (inStringOrComment)
+                    {
                         AutoCompleteModal.Instance.ReleaseOwnership(Completer);
-                    else
+                    }
+                    else if (Input.Text.Length > 0)
+                    {
+#if NET472
+                        int caret = Math.Max(0, Math.Min(Input.Text.Length - 1, Input.Component.caretPosition - 1));
+                        await Completer.CheckAutocompletes(Input.Text[caret]);
+#else
                         Completer.CheckAutocompletes();
+#endif
+                    }
                 }
-            }
 
-            UpdateCaret(out _);
+                UpdateCaret(out _);
+            }
+            catch (Exception e)
+            {
+                ExplorerCore.LogError(e);
+            }
         }
 
         static void OnToggleAutoIndent(bool value)
