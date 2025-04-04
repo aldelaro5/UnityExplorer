@@ -13,16 +13,9 @@
         <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
         <PreserveCompilationContext>false</PreserveCompilationContext>
-        <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <OutputPath>$(SolutionDir)\bin\$(Configuration)\$(MSBuildProjectName)\</OutputPath>
     </PropertyGroup>
-
-    <ItemDefinitionGroup Condition="!$(ProjectName.Contains('Standalone'))">
-        <PackageReference>
-            <PrivateAssets>none</PrivateAssets>
-            <IncludeAssets>compile</IncludeAssets>
-        </PackageReference>
-    </ItemDefinitionGroup>
 
     <PropertyGroup Condition="$(Configuration) == 'Debug'">
         <Optimize>false</Optimize>
@@ -36,13 +29,18 @@
         <DebugType>none</DebugType>
     </PropertyGroup>
 
-    <ItemGroup Condition="$(ProjectName.StartsWith('UnityExplorer')) and $(TargetFramework) != 'net472'">
-        <ProjectReference Include="$(SolutionDir)\mcs-unity\mcs\mcs.csproj">
+    <ItemGroup>
+        <Compile Include="../src/**" LinkBase="."/>
+    </ItemGroup>
+
+    <ItemGroup Condition="$(TargetFramework) != 'net472'">
+        <ProjectReference Include="$(SolutionDir)\external\mcs-unity\mcs\mcs.csproj">
             <Private>True</Private>
         </ProjectReference>
     </ItemGroup>
-    
+
     <ItemGroup Condition="$(TargetFramework) == 'net472'">
+<!--        <ProjectReference Include="$(SolutionDir)\external\UniverseLib\UniverseLib.MonoBleedingEdge\UniverseLib.MonoBleedingEdge.csproj" />-->
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.13.0" >
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>all</IncludeAssets>
@@ -51,6 +49,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>all</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Condition="$(TargetFramework) == 'net35' or $(TargetFramework) == 'net472'">
+        <ProjectReference Include="$(SolutionDir)\external\UniverseLib\UniverseLib.Mono\UniverseLib.Mono.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -72,9 +74,7 @@
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup Condition="$(ProjectName.EndsWith('Mono'))">
-        <ProjectReference Condition="$(ProjectName.StartsWith('UnityExplorer'))"
-                          Include="$(SolutionDir)\UniverseLib\src\UniverseLib.Mono.csproj" />
+    <ItemGroup Condition="$(ProjectName.Contains('Mono'))">
         <PackageReference Include="UnityEngine.Modules" Version="5.6.7">
             <PrivateAssets>none</PrivateAssets>
             <IncludeAssets>compile</IncludeAssets>
@@ -85,13 +85,13 @@
         </Reference>
     </ItemGroup>
 
-    <ItemGroup Condition="$(ProjectName.EndsWith('IL2CPP'))">
+    <ItemGroup Condition="$(ProjectName.Contains('IL2CPP'))">
         <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.618" />
         <PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.618" />
-        <ProjectReference Condition="$(ProjectName.StartsWith('UnityExplorer')) and !$(ProjectName.Contains('MelonLoader'))"
-                          Include="$(SolutionDir)\UniverseLib\src\UniverseLib.IL2CPP.csproj" />
-        <ProjectReference Condition="$(ProjectName.StartsWith('UnityExplorer')) and $(ProjectName.Contains('MelonLoader'))"
-                          Include="$(SolutionDir)\UniverseLib\src\UniverseLib.MelonLoader.IL2CPP.csproj" />
+        <ProjectReference Condition="!$(ProjectName.Contains('MelonLoader'))"
+                          Include="$(SolutionDir)\external\UniverseLib\UniverseLib.IL2CPP\UniverseLib.IL2CPP.csproj" />
+        <ProjectReference Condition="$(ProjectName.Contains('MelonLoader'))"
+                          Include="$(SolutionDir)\external\UniverseLib\UniverseLib.MelonLoader.IL2CPP\UniverseLib.MelonLoader.IL2CPP.csproj" />
         <Reference Include="Il2Cppmscorlib">
             <HintPath>$(SolutionDir)\lib\interop\Il2Cppmscorlib.dll</HintPath>
             <Private>False</Private>
@@ -133,6 +133,13 @@
             <Private>False</Private>
         </Reference>
     </ItemGroup>
+
+    <ItemDefinitionGroup Condition="!$(ProjectName.Contains('Standalone'))">
+        <PackageReference>
+            <PrivateAssets>none</PrivateAssets>
+            <IncludeAssets>compile</IncludeAssets>
+        </PackageReference>
+    </ItemDefinitionGroup>
 
     <Target Name="DeleteDepsJson" AfterTargets="Build">
         <ItemGroup>

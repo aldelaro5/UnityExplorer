@@ -1,0 +1,4 @@
+<Project>
+    <!-- Do not delete this file, it is needed for the submodules to not be directed -->
+    <!-- by the parent directory's Directory.Build.Props -->
+</Project>

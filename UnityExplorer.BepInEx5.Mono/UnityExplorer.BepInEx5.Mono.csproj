@@ -1,14 +1,8 @@
-﻿<Project>
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <BaseIntermediateOutputPath>$(SolutionDir)\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
-    </PropertyGroup>
-    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-
-    <PropertyGroup>
-        <TargetFrameworks>net35;net472</TargetFrameworks>
+        <TargetFramework>net35</TargetFramework>
         <DefineConstants>MONO,BIE,BIE5</DefineConstants>
     </PropertyGroup>
-    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
     <ItemGroup>
         <Reference Include="UnityEngine.UI">

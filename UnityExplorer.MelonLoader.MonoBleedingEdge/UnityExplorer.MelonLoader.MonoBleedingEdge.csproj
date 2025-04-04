@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <DefineConstants>MONO,ML</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.0" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <DefineConstants>MONO,BIE,BIE5</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>$(SolutionDir)\lib\net35\UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    </ItemGroup>
+</Project>
