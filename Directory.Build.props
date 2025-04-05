@@ -40,7 +40,6 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(TargetFramework) == 'net472'">
-<!--        <ProjectReference Include="$(SolutionDir)\external\UniverseLib\UniverseLib.MonoBleedingEdge\UniverseLib.MonoBleedingEdge.csproj" />-->
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.13.0" >
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>all</IncludeAssets>

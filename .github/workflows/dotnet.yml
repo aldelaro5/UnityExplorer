@@ -43,11 +43,25 @@ jobs:
           path: ./bin/Release/UnityExplorer.BepInEx5.Mono/
           if-no-files-found: 'error'
 
+      - name: Upload BepInEx5.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.BepInEx5.MonoBleedingEdge
+          path: ./bin/Release/UnityExplorer.BepInEx5.MonoBleedingEdge/
+          if-no-files-found: 'error'
+
       - name: Upload BepInEx6.Mono
         uses: actions/upload-artifact@v4
         with:
           name: UnityExplorer.BepInEx6.Mono
           path: ./bin/Release/UnityExplorer.BepInEx6.Mono/
+          if-no-files-found: 'error'
+
+      - name: Upload BepInEx6.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.BepInEx6.MonoBleedingEdge
+          path: ./bin/Release/UnityExplorer.BepInEx6.MonoBleedingEdge/
           if-no-files-found: 'error'
 
       - name: Upload MelonLoader.IL2CPP
@@ -64,6 +78,13 @@ jobs:
           path: ./bin/Release/UnityExplorer.MelonLoader.Mono/
           if-no-files-found: 'error'
 
+      - name: Upload MelonLoader.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.MelonLoader.MonoBleedingEdge
+          path: ./bin/Release/UnityExplorer.MelonLoader.MonoBleedingEdge/
+          if-no-files-found: 'error'
+
       - name: Upload Standalone.IL2CPP
         uses: actions/upload-artifact@v4
         with:
@@ -76,6 +97,13 @@ jobs:
         with:
           name: UnityExplorer.Standalone.Mono
           path: ./bin/Release/UnityExplorer.Standalone.Mono/
+          if-no-files-found: 'error'
+
+      - name: Upload Standalone.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.Standalone.MonoBleedingEdge
+          path: ./bin/Release/UnityExplorer.Standalone.MonoBleedingEdge/
           if-no-files-found: 'error'
 
       - name: Upload Editor
