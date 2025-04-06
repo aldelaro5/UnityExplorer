@@ -28,7 +28,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityExplorer.Standalone.Mo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityExplorer.Standalone.IL2CPP", "UnityExplorer.Standalone.IL2CPP\UnityExplorer.Standalone.IL2CPP.csproj", "{A5ABE51D-F9D5-4977-B594-9ED09095D840}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcs", "external/mcs-unity\mcs\mcs.csproj", "{0884B22B-CBD4-49F3-901A-4687C2B0BAC6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcs", "external/mcs-unity\mcs.csproj", "{0884B22B-CBD4-49F3-901A-4687C2B0BAC6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniverseLib.IL2CPP", "external\UniverseLib\UniverseLib.IL2CPP\UniverseLib.IL2CPP.csproj", "{328F87FE-FA29-4DC4-82D8-792088550642}"
 EndProject

@@ -1,4 +1,5 @@
 ﻿#if !NET472
+using HarmonyLib;
 using Mono.CSharp;
 using UnityExplorer.Config;
 
@@ -8,23 +9,33 @@ namespace UnityExplorer.CSConsole
 {
     public class McsScriptEvaluator : Evaluator, IDisposable
     {
+        private static readonly FieldInfo EvaluatorImporter = AccessTools.Field(typeof(Evaluator), "importer");
+
         internal TextWriter _textWriter;
         internal static StreamReportPrinter _reportPrinter;
 
-        private static readonly HashSet<string> StdLib = new(StringComparer.InvariantCultureIgnoreCase)
+        static McsScriptEvaluator()
         {
-            "mscorlib",
-            "System.Core",
-            "System",
-            "System.Xml"
-        };
+            ExplorerCore.Harmony.PatchAll(typeof(McsScriptEvaluator));
+        }
 
         public McsScriptEvaluator(TextWriter tw) : base(BuildContext(tw))
         {
+            ReflectionImporter importer = (ReflectionImporter)EvaluatorImporter.GetValue(this);
+            importer.IgnorePrivateMembers = false;
+            importer.IgnoreCompilerGeneratedField = true;
             _textWriter = tw;
 
             ImportAppdomainAssemblies();
             AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(MemberSpec), nameof(MemberSpec.IsAccessible), typeof(IMemberContext))]
+        public static bool prefix_IsAccessible(IMemberContext ctx, ref bool __result)
+        {
+            __result = true;
+            return false;
         }
 
         public void Dispose()
@@ -35,11 +46,6 @@ namespace UnityExplorer.CSConsole
 
         private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
         {
-            string name = args.LoadedAssembly.GetName().Name;
-
-            if (StdLib.Contains(name))
-                return;
-
             Reference(args.LoadedAssembly);
         }
 
@@ -69,10 +75,12 @@ namespace UnityExplorer.CSConsole
             CompilerSettings settings = new()
             {
                 Version = LanguageVersion.Experimental,
-                GenerateDebugInfo = false,
-                StdLib = true,
+                Optimize = false,
+                GenerateDebugInfo = true,
+                StdLib = false,
                 Target = Target.Library,
                 WarningLevel = 0,
+                Unsafe = true,
                 EnhancedWarnings = false
             };
 
@@ -83,10 +91,6 @@ namespace UnityExplorer.CSConsole
         {
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                string name = assembly.GetName().Name;
-                if (StdLib.Contains(name))
-                    continue;
-
                 try
                 {
                     Reference(assembly);

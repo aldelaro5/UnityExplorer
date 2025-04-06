@@ -34,7 +34,7 @@
     </ItemGroup>
 
     <ItemGroup Condition="$(TargetFramework) != 'net472'">
-        <ProjectReference Include="$(SolutionDir)\external\mcs-unity\mcs\mcs.csproj">
+        <ProjectReference Include="$(SolutionDir)\external\mcs-unity\mcs.csproj">
             <Private>True</Private>
         </ProjectReference>
     </ItemGroup>
