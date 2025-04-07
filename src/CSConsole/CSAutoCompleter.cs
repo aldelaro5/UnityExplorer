@@ -112,9 +112,8 @@ namespace UnityExplorer.CSConsole
 
             if (evaluatorCompletions != null && evaluatorCompletions.Any())
             {
-                suggestions.AddRange(from completion in evaluatorCompletions
-                    select new Suggestion(GetHighlightString(completion.Substring(0, prefix.Length), completion.Remove(0, prefix.Length)),
-                        completion));
+                suggestions.AddRange(evaluatorCompletions.Select(completion =>
+                    new Suggestion(GetHighlightString(completion.Substring(0, prefix.Length), completion.Substring(prefix.Length)), completion)));
             }
 
             // Get manual namespace completions
