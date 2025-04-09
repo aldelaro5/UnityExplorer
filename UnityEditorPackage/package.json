@@ -4,16 +4,16 @@
   "displayName": "UnityExplorer",
   "description": "An in-game UI for exploring, debugging and modifying Unity games.",
   "unity": "2017.1",
-  "documentationUrl": "https://github.com/sinai-dev/UnityExplorer",
-  "changelogUrl": "https://github.com/sinai-dev/UnityExplorer/releases",
-  "licensesUrl": "https://github.com/sinai-dev/UnityExplorer/blob/master/LICENSE",
+  "documentationUrl": "https://github.com/aldelaro5/UnityExplorer/blob/master/README.md",
+  "changelogUrl": "https://github.com/aldelaro5/UnityExplorer/releases",
+  "licensesUrl": "https://github.com/aldelaro5/UnityExplorer/blob/master/LICENSE",
   "keywords": [
     "inspector",
     "debug",
     "runtime"
   ],
   "author": {
-    "name": "Sinai",
-    "url": "https://github.com/sinai-dev"
+    "name": "Sinai, yukieiji, aldelaro5",
+    "url": "https://github.com/aldelaro5"
   }
 }
