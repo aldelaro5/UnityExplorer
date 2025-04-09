@@ -1,3 +1,16 @@
+# 🍴 About this fork 🍴
+
+This fork contains general UI and QOL improvements for my personal usage notably with my modding project plans. It contains modifications of Unity Explorer, UniverseLib and mcs to fully integrate them (see the commits list and the release notes for details). You're welcome to fork these for yourself, but I am only maintaining this fork on a as needed basis. It is a successor of my older attempt at forking the project, but this time, it uses [yukieiji's fork](https://github.com/yukieiji/UnityExplorer) as a base which contains much more stability fixes than the original repository (such as proper il2cpp support).
+
+Main features of this fork are:
+- Completely revamped build system that significantly improves maintenance for future development
+- Completely redone mcs where I restarted its integration from scratch and improved its error reporting / autocompletion quite a bit
+- New Roslyn compiler backends on games with MonoBleedingEdge which offers many new features and improvements compared to mcs (such as support for the latest C# version while mcs is limited to C# 7.3)
+- A game input focus concept where most inputs are prevented to be processed by the game unless it has the focus (clicking on the game gives focus) so tools can be operated without the game reacting (exception for the free camera since the game needs to see inputs, but they are only processed by the free camera)
+- Some QOL improvements such as a way to lock the free camera while playing the game and case insensitive autocomplete for mcs
+
+Builds are in the repository's [Release](https://github.com/aldelaro5/UnityExplorer/releases) section. The original README follows.
+
 <p align="center">
   <img align="center" src="img/icon.png">
 </p>
