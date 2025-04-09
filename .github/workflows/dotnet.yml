@@ -29,10 +29,10 @@ jobs:
         run: dotnet build -c Release --no-restore
 
       #  Upload artifacts
-      - name: Upload BepInEx.IL2CPP
+      - name: Upload BepInEx6.IL2CPP
         uses: actions/upload-artifact@v4
         with:
-          name: UnityExplorer.BepInEx.IL2CPP
+          name: UnityExplorer.BepInEx6.IL2CPP
           path: ./bin/Release/UnityExplorer.BepInEx6.IL2CPP/
           if-no-files-found: 'error'
 
