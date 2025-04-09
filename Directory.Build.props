@@ -48,6 +48,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>all</IncludeAssets>
         </PackageReference>
+        <PackageReference Condition="$(ProjectName.Contains('Standalone.MonoBleedingEdge'))" Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" >
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>all</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup Condition="$(TargetFramework) == 'net35' or $(TargetFramework) == 'net472'">
@@ -169,7 +173,7 @@
         <Move SourceFiles="@(FilesToMove)" DestinationFolder="$(OutputPath)/plugins/sinai-dev-UnityExplorer" />
     </Target>
 
-    <Target Condition="$(ProjectName.Contains('Standalone.Mono')) and $(Configuration) == 'Release'"
+    <Target Condition="$(ProjectName.Contains('Standalone.MonoBleedingEdge')) and $(Configuration) == 'Release'"
             Name="PrepareEditor"
             AfterTargets="DeleteDepsJson">
         <ItemGroup>
