@@ -1,0 +1,261 @@
+name: Draft Release UnityExplorer
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Version number'
+        required: true
+      prerelease:
+        description: 'Prerelease'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      # Compress releases
+      - name: Compress BepInEx6.IL2CPP
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.BepInEx6.IL2CPP
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.BepInEx6.IL2CPP'
+
+      - name: Compress BepInEx5.Mono
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.BepInEx5.Mono
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.BepInEx5.Mono'
+
+      - name: Compress BepInEx5.MonoBleedingEdge
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.BepInEx5.MonoBleedingEdge
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.BepInEx5.MonoBleedingEdge'
+
+      - name: Compress BepInEx6.Mono
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.BepInEx6.Mono
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.BepInEx6.Mono'
+
+      - name: Compress BepInEx6.MonoBleedingEdge
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.BepInEx6.MonoBleedingEdge
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.BepInEx6.MonoBleedingEdge'
+
+      - name: Compress MelonLoader.IL2CPP
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.MelonLoader.IL2CPP
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.MelonLoader.IL2CPP'
+
+      - name: Compress MelonLoader.Mono
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.MelonLoader.Mono
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.MelonLoader.Mono'
+
+      - name: Compress MelonLoader.MonoBleedingEdge
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.MelonLoader.MonoBleedingEdge
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.MelonLoader.MonoBleedingEdge'
+
+      - name: Compress Standalone.IL2CPP
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.Standalone.IL2CPP
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.Standalone.IL2CPP'
+
+      - name: Compress Standalone.Mono
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.Standalone.Mono
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.Standalone.Mono'
+
+      - name: Compress Standalone.MonoBleedingEdge
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./bin/Release/UnityExplorer.Standalone.MonoBleedingEdge
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityExplorer.Standalone.MonoBleedingEdge'
+
+      - name: Compress Editor
+        uses: somaz94/compress-decompress@v1
+        with:
+          command: compress
+          dest: ./artifacts
+          source: ./UnityEditorPackage
+          format: zip
+          includeRoot: false
+          destfilename: 'UnityEditorPackage'
+
+      #  Upload artifacts
+      - name: Upload BepInEx6.IL2CPP
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.BepInEx6.IL2CPP
+          path: ./artifacts/UnityExplorer.BepInEx6.IL2CPP.zip
+          if-no-files-found: 'error'
+
+      - name: Upload BepInEx5.Mono
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.BepInEx5.Mono
+          path: ./artifacts/UnityExplorer.BepInEx5.Mono.zip
+          if-no-files-found: 'error'
+
+      - name: Upload BepInEx5.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.BepInEx5.MonoBleedingEdge
+          path: ./artifacts/UnityExplorer.BepInEx5.MonoBleedingEdge.zip
+          if-no-files-found: 'error'
+
+      - name: Upload BepInEx6.Mono
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.BepInEx6.Mono
+          path: ./artifacts/UnityExplorer.BepInEx6.Mono.zip
+          if-no-files-found: 'error'
+
+      - name: Upload BepInEx6.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.BepInEx6.MonoBleedingEdge
+          path: ./artifacts/UnityExplorer.BepInEx6.MonoBleedingEdge.zip
+          if-no-files-found: 'error'
+
+      - name: Upload MelonLoader.IL2CPP
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.MelonLoader.IL2CPP
+          path: ./artifacts/UnityExplorer.MelonLoader.IL2CPP.zip
+          if-no-files-found: 'error'
+
+      - name: Upload MelonLoader.Mono
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.MelonLoader.Mono
+          path: ./artifacts/UnityExplorer.MelonLoader.Mono.zip
+          if-no-files-found: 'error'
+
+      - name: Upload MelonLoader.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.MelonLoader.MonoBleedingEdge
+          path: ./artifacts/UnityExplorer.MelonLoader.MonoBleedingEdge.zip
+          if-no-files-found: 'error'
+
+      - name: Upload Standalone.IL2CPP
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.Standalone.IL2CPP
+          path: ./artifacts/UnityExplorer.Standalone.IL2CPP.zip
+          if-no-files-found: 'error'
+
+      - name: Upload Standalone.Mono
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.Standalone.Mono
+          path: ./artifacts/UnityExplorer.Standalone.Mono.zip
+          if-no-files-found: 'error'
+
+      - name: Upload Standalone.MonoBleedingEdge
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityExplorer.Standalone.MonoBleedingEdge
+          path: ./artifacts/UnityExplorer.Standalone.MonoBleedingEdge.zip
+          if-no-files-found: 'error'
+
+      - name: Upload UnityEditorPackage
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityEditorPackage
+          path: ./artifacts/UnityEditorPackage.zip
+          if-no-files-found: 'error'
+
+  release:
+    needs: build
+    concurrency:
+      group: "draft-release"
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ inputs.name }}
+          name: Version ${{ inputs.name }}
+          artifacts: artifacts/**/*.zip
+          prerelease: ${{ inputs.prerelease }}
+          draft: true
+          replacesArtifacts: false
+          artifactErrorsFailBuild: true
