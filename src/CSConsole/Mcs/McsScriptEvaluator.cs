@@ -1,5 +1,4 @@
 ﻿#if !NET472
-using HarmonyLib;
 using Mono.CSharp;
 using UnityExplorer.Config;
 
@@ -9,33 +8,15 @@ namespace UnityExplorer.CSConsole
 {
     public class McsScriptEvaluator : Evaluator, IDisposable
     {
-        private static readonly FieldInfo EvaluatorImporter = AccessTools.Field(typeof(Evaluator), "importer");
-
         internal TextWriter _textWriter;
         internal static StreamReportPrinter _reportPrinter;
 
-        static McsScriptEvaluator()
-        {
-            ExplorerCore.Harmony.PatchAll(typeof(McsScriptEvaluator));
-        }
-
         public McsScriptEvaluator(TextWriter tw) : base(BuildContext(tw))
         {
-            ReflectionImporter importer = (ReflectionImporter)EvaluatorImporter.GetValue(this);
-            importer.IgnorePrivateMembers = false;
-            importer.IgnoreCompilerGeneratedField = true;
             _textWriter = tw;
 
             ImportAppdomainAssemblies();
             AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(MemberSpec), nameof(MemberSpec.IsAccessible), typeof(IMemberContext))]
-        public static bool prefix_IsAccessible(IMemberContext ctx, ref bool __result)
-        {
-            __result = true;
-            return false;
         }
 
         public void Dispose()
