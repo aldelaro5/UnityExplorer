@@ -48,7 +48,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>all</IncludeAssets>
         </PackageReference>
-        <PackageReference Condition="$(ProjectName.Contains('Standalone.MonoBleedingEdge'))" Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" >
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" >
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>all</IncludeAssets>
         </PackageReference>
