@@ -151,6 +151,10 @@
         <Delete Files="@(FilesToDelete)"/>
     </Target>
 
+    <Target Name="DeleteRuntimesFolder" AfterTargets="DeleteDepsJson">
+        <RemoveDir Directories="$(OutputPath)/runtimes"/>
+    </Target>
+
     <Target Condition="$(ProjectName.Contains('MelonLoader'))"
             Name="PrepareMelonLoader"
             AfterTargets="DeleteDepsJson">
