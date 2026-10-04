@@ -38,7 +38,7 @@ namespace UnityExplorer.ObjectExplorer
         internal static int DefaultSceneCount => 1 + (DontDestroyExists ? 1 : 0);
 
         /// <summary>Whether or not we are currently inspecting the "HideAndDontSave" asset scene.</summary>
-        public static bool InspectingAssetScene => SelectedScene.HasValue && SelectedScene.Value.handle == -1;
+        public static bool InspectingAssetScene => SelectedScene.HasValue && SelectedScene.Value.GetSceneIntHandle() == -1;
 
         /// <summary>Whether or not we successfuly retrieved the names of the scenes in the build settings.</summary>
         public static bool WasAbleToGetScenesInBuild { get; private set; }
@@ -49,7 +49,7 @@ namespace UnityExplorer.ObjectExplorer
         internal static void Init()
         {
             // Check if the game has "DontDestroyOnLoad"
-            DontDestroyExists = Scene.GetNameInternal(-12) == "DontDestroyOnLoad";
+            DontDestroyExists = UnityHelpers.GetSceneNameByIntHandle(-12) == "DontDestroyOnLoad";
 
             // Try to get all scenes in the build settings. This may not work.
             try
@@ -80,8 +80,8 @@ namespace UnityExplorer.ObjectExplorer
             // Inspected scene will exist if it's DontDestroyOnLoad or HideAndDontSave
             bool inspectedExists =
                 SelectedScene.HasValue
-                && ((DontDestroyExists && SelectedScene.Value.handle == -12)
-                    || SelectedScene.Value.handle == -1);
+                && ((DontDestroyExists && SelectedScene.Value.GetSceneIntHandle() == -12)
+                    || SelectedScene.Value.GetSceneIntHandle() == -1);
 
             LoadedScenes.Clear();
 
@@ -99,8 +99,8 @@ namespace UnityExplorer.ObjectExplorer
             }
 
             if (DontDestroyExists)
-                LoadedScenes.Add(new Scene { m_Handle = -12 });
-            LoadedScenes.Add(new Scene { m_Handle = -1 });
+                LoadedScenes.Add(UnityHelpers.CreateSceneFromIntHandle(-12));
+            LoadedScenes.Add(UnityHelpers.CreateSceneFromIntHandle(-1));
 
             // Default to first scene if none selected or previous selection no longer exists.
             if (!inspectedExists)
