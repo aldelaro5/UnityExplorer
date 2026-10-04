@@ -125,6 +125,7 @@ namespace UnityExplorer.CSConsole
         {
             _interaction = new RoslynScriptInteraction(this);
             ImportAppdomainAssemblies();
+            EnsureUnityCoreModuleReference();
             AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
         }
 
@@ -282,6 +283,45 @@ namespace UnityExplorer.CSConsole
         public void Dispose()
         {
             AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoad;
+        }
+
+        private void EnsureUnityCoreModuleReference()
+        {
+            try
+            {
+                string coreModulePath = Path.Combine(
+                    Application.dataPath,
+                    "Managed",
+                    "UnityEngine.CoreModule.dll");
+
+                if (!File.Exists(coreModulePath))
+                {
+                    ExplorerCore.LogWarning(
+                        $"C# Console could not find UnityEngine.CoreModule.dll at '{coreModulePath}'.");
+                    return;
+                }
+
+                if (_references.Any(reference =>
+                        !string.IsNullOrEmpty(reference.Display) &&
+                        string.Equals(
+                            Path.GetFullPath(reference.Display),
+                            Path.GetFullPath(coreModulePath),
+                            StringComparison.OrdinalIgnoreCase)))
+                {
+                    return;
+                }
+
+                _references.Add(
+                    MetadataReference.CreateFromFile(coreModulePath));
+
+                ExplorerCore.Log(
+                    $"C# Console added runtime reference: {coreModulePath}");
+            }
+            catch (Exception ex)
+            {
+                ExplorerCore.LogWarning(
+                    $"C# Console could not add UnityEngine.CoreModule runtime reference: {ex}");
+            }
         }
 
         private bool AssemblyIsBackedByFile(Assembly assembly)
